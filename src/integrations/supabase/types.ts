@@ -9,7 +9,250 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      collaborations: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string | null
+          faculty_id_1: string | null
+          faculty_id_2: string | null
+          id: string
+          project_title: string
+          start_date: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          faculty_id_1?: string | null
+          faculty_id_2?: string | null
+          id?: string
+          project_title: string
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          faculty_id_1?: string | null
+          faculty_id_2?: string | null
+          id?: string
+          project_title?: string
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaborations_faculty_id_1_fkey"
+            columns: ["faculty_id_1"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collaborations_faculty_id_2_fkey"
+            columns: ["faculty_id_2"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      faculty: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          citations: number | null
+          collaborations_count: number | null
+          created_at: string
+          department: string
+          email: string
+          h_index: number | null
+          id: string
+          institution: string
+          name: string
+          phone: string | null
+          position: string
+          publications_count: number | null
+          research_areas: string[]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          citations?: number | null
+          collaborations_count?: number | null
+          created_at?: string
+          department: string
+          email: string
+          h_index?: number | null
+          id?: string
+          institution: string
+          name: string
+          phone?: string | null
+          position: string
+          publications_count?: number | null
+          research_areas: string[]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          citations?: number | null
+          collaborations_count?: number | null
+          created_at?: string
+          department?: string
+          email?: string
+          h_index?: number | null
+          id?: string
+          institution?: string
+          name?: string
+          phone?: string | null
+          position?: string
+          publications_count?: number | null
+          research_areas?: string[]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faculty_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          department: string | null
+          full_name: string | null
+          id: string
+          institution: string | null
+          position: string | null
+          research_interests: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          department?: string | null
+          full_name?: string | null
+          id: string
+          institution?: string | null
+          position?: string | null
+          research_interests?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          department?: string | null
+          full_name?: string | null
+          id?: string
+          institution?: string | null
+          position?: string | null
+          research_interests?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      publications: {
+        Row: {
+          abstract: string | null
+          authors: string[]
+          citation_count: number | null
+          created_at: string
+          doi: string | null
+          faculty_id: string | null
+          id: string
+          journal: string | null
+          keywords: string[] | null
+          title: string
+          type: string | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          abstract?: string | null
+          authors: string[]
+          citation_count?: number | null
+          created_at?: string
+          doi?: string | null
+          faculty_id?: string | null
+          id?: string
+          journal?: string | null
+          keywords?: string[] | null
+          title: string
+          type?: string | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          abstract?: string | null
+          authors?: string[]
+          citation_count?: number | null
+          created_at?: string
+          doi?: string | null
+          faculty_id?: string | null
+          id?: string
+          journal?: string | null
+          keywords?: string[] | null
+          title?: string
+          type?: string | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publications_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_trends: {
+        Row: {
+          created_at: string
+          frequency: number
+          id: string
+          keyword: string
+          month: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          frequency?: number
+          id?: string
+          keyword: string
+          month: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          frequency?: number
+          id?: string
+          keyword?: string
+          month?: number
+          year?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

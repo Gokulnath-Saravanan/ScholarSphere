@@ -3,6 +3,7 @@ import { ArrowRight, Search, Users, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import AuthButton from '@/components/layout/AuthButton';
 
 const Hero = () => {
   return (
@@ -12,6 +13,11 @@ const Hero = () => {
         <div className="absolute -top-40 -right-40 w-80 h-80 scholar-gradient rounded-full opacity-20 animate-float"></div>
         <div className="absolute -bottom-40 -left-40 w-96 h-96 scholar-gradient rounded-full opacity-15 animate-float" style={{ animationDelay: '2s' }}></div>
         <div className="absolute top-20 right-20 w-32 h-32 scholar-gradient rounded-full opacity-25 animate-float" style={{ animationDelay: '4s' }}></div>
+      </div>
+
+      {/* Auth Button in top right */}
+      <div className="absolute top-8 right-8 z-10">
+        <AuthButton />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
