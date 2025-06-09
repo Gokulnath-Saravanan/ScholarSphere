@@ -1,44 +1,52 @@
 
 import { useState } from 'react';
 import { Search, Menu, X, User, BookOpen, Users, Brain } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
 
   const navigation = [
-    { name: 'Faculty', href: '#faculty', icon: Users },
-    { name: 'Publications', href: '#publications', icon: BookOpen },
-    { name: 'Research', href: '#research', icon: Brain },
-    { name: 'About', href: '#about', icon: User }
+    { name: 'Faculty', href: '/faculty', icon: Users },
+    { name: 'Publications', href: '/publications', icon: BookOpen },
+    { name: 'Research', href: '/research', icon: Brain },
+    { name: 'About', href: '/about', icon: User }
   ];
+
+  const isActive = (href: string) => location.pathname === href;
 
   return (
     <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-scholar-blue-300/20 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 scholar-gradient rounded-lg flex items-center justify-center">
               <Brain className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-bold scholar-gradient-text">ScholarSphere</span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
-                <a
+                <Link
                   key={item.name}
-                  href={item.href}
-                  className="flex items-center space-x-1 text-scholar-blue-700 hover:text-scholar-blue-900 transition-colors duration-200"
+                  to={item.href}
+                  className={`flex items-center space-x-1 transition-colors duration-200 ${
+                    isActive(item.href) 
+                      ? 'text-scholar-blue-900 font-medium' 
+                      : 'text-scholar-blue-700 hover:text-scholar-blue-900'
+                  }`}
                 >
                   <Icon className="h-4 w-4" />
                   <span>{item.name}</span>
-                </a>
+                </Link>
               );
             })}
           </nav>
@@ -77,15 +85,19 @@ const Header = () => {
               {navigation.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <a
+                  <Link
                     key={item.name}
-                    href={item.href}
-                    className="flex items-center space-x-2 text-scholar-blue-700 hover:text-scholar-blue-900 transition-colors duration-200"
+                    to={item.href}
+                    className={`flex items-center space-x-2 transition-colors duration-200 ${
+                      isActive(item.href) 
+                        ? 'text-scholar-blue-900 font-medium' 
+                        : 'text-scholar-blue-700 hover:text-scholar-blue-900'
+                    }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <Icon className="h-4 w-4" />
                     <span>{item.name}</span>
-                  </a>
+                  </Link>
                 );
               })}
               <div className="pt-4 border-t border-scholar-blue-300/20">
