@@ -9,7 +9,11 @@ logger = logging.getLogger(__name__)
 class DomainClassifier:
     def __init__(self):
         """Initialize the domain classifier with pre-defined research domains"""
-        self.classifier = pipeline("zero-shot-classification")
+        self.classifier = pipeline(
+            "zero-shot-classification",
+            model="valhalla/distilbart-mnli-12-1",
+            device=-1
+        )
         self.research_domains = [
             "Artificial Intelligence",
             "Machine Learning",

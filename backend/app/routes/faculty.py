@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
 from typing import List, Dict
-from ..scrapers.irins_scraper import IRINSScraper
 from ..ml.domain_classifier import DomainClassifier
 from ..database.supabase import supabase_client
 from ..auth.deps import get_current_active_user
@@ -9,7 +8,6 @@ import logging
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-scraper = IRINSScraper()
 classifier = DomainClassifier()
 
 # Global variable to track scraping progress
