@@ -1,0 +1,73 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ScholarSphere Design System */
+
+@layer base {
+  :root {
+    --background: 255 255 255;
+    --foreground: 61 82 160;
+
+    --card: 255 255 255;
+    --card-foreground: 61 82 160;
+
+    --popover: 255 255 255;
+    --popover-foreground: 61 82 160;
+
+    --primary: 61 82 160;
+    --primary-foreground: 255 255 255;
+
+    --secondary: 237 232 245;
+    --secondary-foreground: 61 82 160;
+
+    --muted: 237 232 245;
+    --muted-foreground: 134 151 196;
+
+    --accent: 173 187 218;
+    --accent-foreground: 61 82 160;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 173 187 218;
+    --input: 173 187 218;
+    --ring: 61 82 160;
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .scholar-gradient {
+    @apply bg-gradient-scholar;
+  }
+
+  .scholar-gradient-text {
+    @apply bg-gradient-to-r from-scholar-blue-900 to-scholar-blue-700 bg-clip-text text-transparent;
+  }
+
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-sm border border-scholar-blue-300/20 shadow-lg;
+  }
+
+  .hover-lift {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-2;
+  }
+}
