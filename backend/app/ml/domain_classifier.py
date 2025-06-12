@@ -2,39 +2,47 @@ from transformers import pipeline
 import numpy as np
 from typing import List, Dict
 import logging
+import asyncio
+from functools import lru_cache
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+@lru_cache()
+def get_classifier():
+    """
+    Initialize and cache the zero-shot classification pipeline
+    """
+    return pipeline(
+        "zero-shot-classification",
+        model="facebook/bart-large-mnli",
+        device=-1  # CPU
+    )
+
 class DomainClassifier:
     def __init__(self):
         """Initialize the domain classifier with pre-defined research domains"""
-        self.classifier = pipeline(
-            "zero-shot-classification",
-            model="valhalla/distilbart-mnli-12-1",
-            device=-1
-        )
         self.research_domains = [
+            "Computer Science",
             "Artificial Intelligence",
             "Machine Learning",
-            "Computer Vision",
-            "Natural Language Processing",
             "Data Science",
+            "Bioinformatics",
+            "Natural Language Processing",
+            "Computer Vision",
             "Robotics",
-            "Internet of Things",
-            "Cybersecurity",
-            "Cloud Computing",
-            "Big Data",
-            "Software Engineering",
-            "Web Technologies",
-            "Network Security",
-            "Embedded Systems",
-            "VLSI Design",
-            "Power Systems",
-            "Control Systems",
-            "Signal Processing",
-            "Communication Systems",
-            "Wireless Networks"
+            "Physics",
+            "Mathematics",
+            "Chemistry",
+            "Biology",
+            "Medicine",
+            "Environmental Science",
+            "Social Sciences",
+            "Economics",
+            "Psychology",
+            "Engineering",
+            "Materials Science",
+            "Neuroscience"
         ]
 
     def classify_text(self, text: str, threshold: float = 0.3) -> List[str]:
@@ -47,7 +55,8 @@ class DomainClassifier:
             List of predicted research domains
         """
         try:
-            result = self.classifier(
+            classifier = get_classifier()
+            result = classifier(
                 text,
                 candidate_labels=self.research_domains,
                 multi_label=True
@@ -109,4 +118,55 @@ class DomainClassifier:
                 pub['research_domains'] = ["Other"]
                 classified_publications.append(pub)
                 
-        return classified_publications 
+        return classified_publications
+
+async def classify_research_domain(texts: List[str]) -> List[dict]:
+    """
+    Classify research domains for given texts using zero-shot classification
+    """
+    if not texts:
+        return []
+
+    classifier = get_classifier()
+    
+    # Process in batches to avoid memory issues
+    batch_size = 5
+    results = []
+    
+    for i in range(0, len(texts), batch_size):
+        batch = texts[i:i + batch_size]
+        batch_results = []
+        
+        for text in batch:
+            if not text.strip():
+                batch_results.append({"domains": [], "scores": []})
+                continue
+                
+            # Classify the text against all research domains
+            result = classifier(
+                text,
+                candidate_labels=RESEARCH_DOMAINS,
+                multi_label=True
+            )
+            
+            # Filter domains with confidence > 0.3
+            confident_domains = [
+                {"domain": domain, "confidence": score}
+                for domain, score in zip(result["labels"], result["scores"])
+                if score > 0.3
+            ]
+            
+            # Sort by confidence
+            confident_domains.sort(key=lambda x: x["confidence"], reverse=True)
+            
+            batch_results.append({
+                "domains": [d["domain"] for d in confident_domains[:3]],
+                "scores": [d["confidence"] for d in confident_domains[:3]]
+            })
+            
+        results.extend(batch_results)
+        
+        # Small delay to prevent overloading
+        await asyncio.sleep(0.1)
+    
+    return results 

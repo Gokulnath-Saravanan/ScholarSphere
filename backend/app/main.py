@@ -1,56 +1,42 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
-import os
-from .routes import faculty, auth
-import logging
-
-# Load environment variables
-load_dotenv()
-
-# Configure logging
-logging.basicConfig(
-    level=os.getenv("LOG_LEVEL", "INFO"),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+from app.routes import search, analytics
 
 app = FastAPI(
     title="ScholarSphere API",
-    description="Backend API for ScholarSphere - Faculty Research Network Platform",
+    description="API for ScholarSphere - Academic Research Network Platform",
     version="1.0.0"
 )
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite's default port
+    allow_origins=["*"],  # In production, replace with specific origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Include routers
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
-app.include_router(faculty.router, prefix="/api/v1", tags=["faculty"])
+app.include_router(search.router)
+app.include_router(analytics.router)
 
-@app.get("/")
-async def root():
-    return {"message": "Welcome to ScholarSphere API"}
-
+# Health check endpoint
 @app.get("/health")
 async def health_check():
-    return {
-        "status": "healthy",
-        "version": "1.0.0"
-    }
+    return JSONResponse(
+        content=jsonable_encoder({"status": "healthy", "message": "API is running"}),
+        status_code=200
+    )
 
-# Global exception handler
-@app.exception_handler(Exception)
-async def global_exception_handler(request, exc):
-    logger.error(f"Global exception handler caught: {str(exc)}")
-    return {
-        "status_code": 500,
-        "detail": "Internal server error",
-        "message": str(exc)
-    } 
+# Import and include routers here
+# Example:
+# from app.routes import faculty, publications
+# app.include_router(faculty.router)
+# app.include_router(publications.router)
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True) 

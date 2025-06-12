@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -55,11 +54,11 @@ export default {
 				},
 				// ScholarSphere custom colors
 				'scholar-blue': {
-					900: '#3D52A0',
-					700: '#7091E6', 
-					500: '#8697C4',
-					300: '#ADBBDA',
-					100: '#EDE8F5'
+					900: '#212A31', // Very dark, almost blackish blue
+					700: '#2E3944', // Deep, muted navy blue
+					500: '#124E66', // Medium, slightly teal-leaning blue
+					300: '#748D92', // Light, grayish-blue
+					100: '#D3D9D4'  // Very light, almost white gray
 				}
 			},
 			borderRadius: {
@@ -117,3 +116,88 @@ export default {
 	},
 	plugins: [require("tailwindcss-animate")],
 } satisfies Config;
+
+import { useEffect, useState } from 'react';
+import { Line, Bar, Pie } from 'react-chartjs-2';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
+
+export function AnalyticsOverview() {
+  const [trends, setTrends] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, []);
+
+  const fetchAnalytics = async () => {
+    const { data, error } = await supabase
+      .from('research_trends')
+      .select('*')
+      .order('year', { ascending: true });
+
+    if (data) setTrends(data);
+    setLoading(false);
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: true,
+        text: 'Research Trends Analysis',
+        color: '#124E66', // Using scholar-blue-500
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: '#D3D9D4', // Using scholar-blue-100
+        },
+        ticks: {
+          color: '#2E3944', // Using scholar-blue-700
+        },
+      },
+      x: {
+        grid: {
+          color: '#D3D9D4', // Using scholar-blue-100
+        },
+        ticks: {
+          color: '#2E3944', // Using scholar-blue-700
+        },
+      },
+    },
+  };
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <Card className="col-span-full">
+        <CardHeader>
+          <CardTitle className="text-scholar-blue-700">Research Analytics Overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex justify-center">Loading...</div>
+          ) : (
+            <Line
+              data={{
+                labels: trends.map(t => t.year),
+                datasets: [{
+                  label: 'Publication Count',
+                  data: trends.map(t => t.publication_count),
+                  borderColor: '#124E66', // scholar-blue-500
+                  backgroundColor: '#748D92', // scholar-blue-300
+                }],
+              }}
+              options={chartOptions}
+            />
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
