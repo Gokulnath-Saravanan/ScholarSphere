@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from typing import List, Optional
+from typing import List, Optional, Dict
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
@@ -36,6 +36,49 @@ class SearchQuery(BaseModel):
     page: int = 1
     limit: int = 10
 
+@router.get("/filter-options")
+async def get_filter_options():
+    """
+    Get available filter options for search
+    """
+    try:
+        logger.info("Fetching filter options")
+        
+        # Get unique departments
+        departments_response = supabase.table("faculty") \
+            .select("department") \
+            .execute()
+        departments = list(set(d["department"] for d in departments_response.data if d["department"]))
+        
+        # Get unique institutions
+        institutions_response = supabase.table("faculty") \
+            .select("institution") \
+            .execute()
+        institutions = list(set(i["institution"] for i in institutions_response.data if i["institution"]))
+        
+        # Get unique cities and states
+        locations_response = supabase.table("faculty") \
+            .select("city, state") \
+            .execute()
+        cities = list(set(l["city"] for l in locations_response.data if l.get("city")))
+        states = list(set(l["state"] for l in locations_response.data if l.get("state")))
+        
+        # Get unique domains from the domain classifier
+        from ..ml.domain_classifier import DomainClassifier
+        classifier = DomainClassifier()
+        domains = classifier.research_domains
+        
+        return {
+            "departments": sorted(departments),
+            "institutions": sorted(institutions),
+            "domains": sorted(domains),
+            "cities": sorted(cities),
+            "states": sorted(states)
+        }
+    except Exception as e:
+        logger.error(f"Error fetching filter options: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/all")
 async def search_all(search_query: SearchQuery):
     """
@@ -43,23 +86,39 @@ async def search_all(search_query: SearchQuery):
     """
     try:
         query = search_query.query.lower()
-        logger.info(f"Processing search query: {query}")
+        filters = search_query.filters or {}
+        logger.info(f"Processing search query: {query} with filters: {filters}")
 
         # Search faculty
         faculty = []
         try:
             logger.info("Searching faculty...")
-            faculty_response = supabase.table("faculty") \
+            faculty_query = supabase.table("faculty") \
                 .select("*") \
                 .or_(
                     f"name.ilike.%{query}%,"
                     f"department.ilike.%{query}%,"
                     f"institution.ilike.%{query}%,"
                     f"expertise.cs.{{{query}}}"
-                ) \
-                .limit(search_query.limit) \
-                .execute()
+                )
             
+            # Apply filters
+            if filters.get("department"):
+                faculty_query = faculty_query.in_("department", filters["department"])
+            if filters.get("institution"):
+                # Handle institution variations
+                normalized_institutions = [normalize_institution(inst) for inst in filters["institution"]]
+                faculty_query = faculty_query.or_(
+                    *[f"institution.ilike.%{inst}%" for inst in normalized_institutions]
+                )
+            if filters.get("domain"):
+                faculty_query = faculty_query.contains("expertise", filters["domain"])
+            if filters.get("city"):
+                faculty_query = faculty_query.in_("city", filters["city"])
+            if filters.get("state"):
+                faculty_query = faculty_query.in_("state", filters["state"])
+                
+            faculty_response = faculty_query.limit(search_query.limit).execute()
             faculty = faculty_response.data if hasattr(faculty_response, 'data') else []
             logger.info(f"Found {len(faculty)} faculty results")
         except Exception as e:
@@ -91,7 +150,7 @@ async def search_all(search_query: SearchQuery):
         publications = []
         try:
             logger.info("Searching publications...")
-            publications_response = supabase.table("publications") \
+            pub_query = supabase.table("publications") \
                 .select("""
                     *,
                     faculty_publications (
@@ -101,7 +160,9 @@ async def search_all(search_query: SearchQuery):
                         faculty (
                             name,
                             department,
-                            institution
+                            institution,
+                            irins_profile_url,
+                            email
                         )
                     )
                 """) \
@@ -110,10 +171,20 @@ async def search_all(search_query: SearchQuery):
                     f"abstract.ilike.%{query}%,"
                     f"venue.ilike.%{query}%,"
                     f"publisher.ilike.%{query}%"
-                ) \
-                .limit(search_query.limit) \
-                .execute()
+                )
             
+            # Apply filters
+            if filters.get("department"):
+                pub_query = pub_query.in_("faculty_publications.faculty.department", filters["department"])
+            if filters.get("institution"):
+                normalized_institutions = [normalize_institution(inst) for inst in filters["institution"]]
+                pub_query = pub_query.or_(
+                    *[f"faculty_publications.faculty.institution.ilike.%{inst}%" for inst in normalized_institutions]
+                )
+            if filters.get("domain"):
+                pub_query = pub_query.contains("research_domains", filters["domain"])
+                
+            publications_response = pub_query.limit(search_query.limit).execute()
             publications = publications_response.data if hasattr(publications_response, 'data') else []
             logger.info(f"Found {len(publications)} publication results")
         except Exception as e:
@@ -126,13 +197,19 @@ async def search_all(search_query: SearchQuery):
                 "id": str(f.get("id")),
                 "type": "faculty",
                 "title": f.get("name", ""),
-                "description": f"{f.get('department', '')} at {f.get('institution', '')}",
+                "description": f"{f.get('department', '')} at {normalize_institution(f.get('institution', ''))}",
                 "expertise": f.get("expertise", []),
                 "photo_url": f.get("photo_url"),
                 "citations": f.get("citations"),
                 "h_index": f.get("h_index"),
                 "google_scholar_url": f.get("google_scholar_url"),
-                "orcid_id": f.get("orcid_id")
+                "orcid_id": f.get("orcid_id"),
+                "irins_profile_url": f.get("irins_profile_url"),
+                "email": f.get("email"),
+                "department": f.get("department", ""),
+                "institution": normalize_institution(f.get("institution", "")),
+                "city": f.get("city", ""),
+                "state": f.get("state", "")
             } for f in faculty],
             
             "profiles": [{
@@ -210,32 +287,115 @@ async def search_all(search_query: SearchQuery):
 @router.post("/faculty")
 async def search_faculty(search_query: SearchQuery):
     """
-    Search faculty profiles
+    Search faculty profiles with their domain-specific publications
     """
     try:
         query = search_query.query.lower()
         logger.info(f"Searching faculty with query: {query}")
         
-        response = supabase.table("profiles") \
+        # First search for faculty
+        faculty_response = supabase.table("faculty") \
             .select("*") \
-            .or_(f"full_name.ilike.%{query}%,department.ilike.%{query}%") \
-            .limit(search_query.limit) \
+            .or_(
+                f"name.ilike.%{query}%,"
+                f"department.ilike.%{query}%,"
+                f"institution.ilike.%{query}%,"
+                f"expertise.cs.{{{query}}}"
+            ) \
             .execute()
         
-        profiles = response.data if hasattr(response, 'data') else []
+        faculty = faculty_response.data if hasattr(faculty_response, 'data') else []
+        enriched_results = []
+
+        # Function to get domain-specific publications
+        async def get_domain_publications(faculty_id: str, domain: str = None):
+            query = supabase.table("publications") \
+                .select("""
+                    *,
+                    faculty_publications (
+                        faculty_id,
+                        author_position,
+                        is_corresponding
+                    )
+                """) \
+                .eq("faculty_publications.faculty_id", faculty_id)
+            
+            if domain:
+                query = query.contains("research_domains", [domain])
+            
+            publications_response = await query.execute()
+            return publications_response.data if hasattr(publications_response, 'data') else []
+
+        # Process each faculty member
+        for f in faculty:
+            faculty_id = f.get("id")
+            # Get publications (domain-specific if query matches a domain)
+            publications = await get_domain_publications(faculty_id, query if len(query) > 2 else None)
+            
+            faculty_result = {
+                "id": str(faculty_id),
+                "type": "faculty",
+                "name": f.get("name", ""),
+                "department": f.get("department", ""),
+                "institution": f.get("institution", ""),
+                "irins_profile_url": f.get("irins_profile_url"),  # IRINS profile URL
+                "publications": [{
+                    "id": str(p.get("id")),
+                    "title": p.get("title"),
+                    "year": p.get("year"),
+                    "venue": p.get("venue"),
+                    "citation_count": p.get("citation_count", 0),
+                    "paper_url": p.get("paper_url"),
+                    "research_domains": p.get("research_domains", []),
+                    "is_corresponding": any(fp.get("is_corresponding") for fp in p.get("faculty_publications", []))
+                } for p in publications]
+            }
+            
+            enriched_results.append(faculty_result)
         
-        results = [{
-            "id": str(f.get("id")),
+        # If searching by domain and no direct faculty matches, search through publications
+        if not enriched_results and len(query) > 2:
+            domain_publications = supabase.table("publications") \
+                .select("""
+                    *,
+                    faculty_publications (
+                        faculty_id,
+                        faculty (*)
+                    )
+                """) \
+                .contains("research_domains", [query]) \
+                .execute()
+            
+            if hasattr(domain_publications, 'data'):
+                faculty_seen = set()
+                for pub in domain_publications.data:
+                    for fp in pub.get("faculty_publications", []):
+                        faculty_data = fp.get("faculty")
+                        if faculty_data and faculty_data.get("id") not in faculty_seen:
+                            faculty_seen.add(faculty_data.get("id"))
+                            # Get complete faculty profile with domain-specific publications
+                            faculty_result = {
+                                "id": str(faculty_data.get("id")),
             "type": "faculty",
-            "name": f.get("full_name", ""),
-            "position": f.get("position"),
-            "department": f.get("department"),
-            "email": f.get("email"),
-            "avatar_url": f.get("avatar_url")
-        } for f in profiles]
+                                "name": faculty_data.get("name", ""),
+                                "department": faculty_data.get("department", ""),
+                                "institution": faculty_data.get("institution", ""),
+                                "irins_profile_url": faculty_data.get("irins_profile_url"),
+                                "publications": [{
+                                    "id": str(pub.get("id")),
+                                    "title": pub.get("title"),
+                                    "year": pub.get("year"),
+                                    "venue": pub.get("venue"),
+                                    "citation_count": pub.get("citation_count", 0),
+                                    "paper_url": pub.get("paper_url"),
+                                    "research_domains": pub.get("research_domains", []),
+                                    "is_corresponding": any(fp.get("is_corresponding") for fp in pub.get("faculty_publications", []))
+                                }]
+                            }
+                            enriched_results.append(faculty_result)
         
-        logger.info(f"Returning {len(results)} faculty results")
-        return {"results": results}
+        logger.info(f"Returning {len(enriched_results)} faculty results")
+        return {"results": enriched_results}
     except Exception as e:
         logger.error(f"Faculty search error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -326,3 +486,31 @@ async def classify_domain(texts: List[str]):
     except Exception as e:
         logger.error(f"Domain classification error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) 
+
+def normalize_institution(institution: str) -> str:
+    """Normalize institution names to handle variations"""
+    if not institution:
+        return ""
+        
+    # Convert to lowercase for comparison
+    inst_lower = institution.lower().strip()
+    
+    # Define common variations
+    variations = {
+        "m s ramaiah institute of technology": [
+            "m s ramaiah institute of technology",
+            "m.s. ramaiah institute of technology",
+            "ms ramaiah institute of technology",
+            "ramaiah institute of technology",
+            "msrit",
+            "rit bangalore"
+        ],
+        # Add more institutions as needed
+    }
+    
+    # Check if the institution matches any variation
+    for standard_name, variants in variations.items():
+        if inst_lower in variants or any(v in inst_lower for v in variants):
+            return "M S Ramaiah Institute of Technology, Bangalore"
+            
+    return institution  # Return original if no match found 

@@ -1,73 +1,48 @@
-# Welcome to your Lovable project
+# 🧠 ScholarSphere
 
-## Project info
+**ScholarSphere** is a research networking and collaboration platform that enables users to discover, connect, and collaborate with scholars based on their research interests. It combines intelligent domain classification using a T5 transformer model with a modern web interface to simplify the process of academic collaboration and exploration.
 
-**URL**: https://lovable.dev/projects/8c005b8f-f144-4f30-8887-712aa0f217b7
+---
 
-## How can I edit this code?
+## 🚀 Features
 
-There are several ways of editing your application.
+- 🔍 **Domain Classification:** Automatically classifies research publications using a T5 transformer-based NLP model.
+- 👥 **Scholar Discovery:** Find and connect with researchers who share similar interests.
+- 📂 **Research Profiles:** Each user can manage a public-facing profile with their research contributions.
+- 🧠 **Intelligent Matching:** Uses NLP and AI to recommend potential collaborators.
+- ⚡ **Modern Frontend:** Built with a fast and responsive UI powered by Vite + React + Tailwind CSS.
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/8c005b8f-f144-4f30-8887-712aa0f217b7) and start prompting.
+## 🛠️ Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+### 📌 Backend
+- **FastAPI** – High-performance Python web framework for APIs.
+- **T5 Transformer** – NLP model for domain classification of research abstracts/papers.
 
-**Use your preferred IDE**
+### 💻 Frontend
+- **Vite** – Lightning-fast frontend tooling.
+- **React** – Component-based UI framework.
+- **TypeScript** – Strongly typed superset of JavaScript.
+- **Tailwind CSS** – Utility-first CSS framework for rapid styling.
+- **shadcn/ui** – Accessible and beautifully designed UI components.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 📦 Installation
 
-Follow these steps:
+### Clone the repository
+```bash
+git clone https://github.com/yourusername/scholarsphere.git
+cd scholarsphere
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+cd backend
+python -m venv env
+source env/bin/activate  # On Windows: env\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --reload
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+cd frontend
+npm install
 npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/8c005b8f-f144-4f30-8887-712aa0f217b7) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
