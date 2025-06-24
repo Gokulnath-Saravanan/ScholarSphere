@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ScholarSphere Design System */
+
+@layer base {
+  :root {
+    --background: 211 217 212; /* #D3D9D4 */
+    --foreground: 33 42 49; /* #212A31 */
+
+    --card: 211 217 212; /* #D3D9D4 */
+    --card-foreground: 33 42 49; /* #212A31 */
+
+    --popover: 211 217 212; /* #D3D9D4 */
+    --popover-foreground: 33 42 49; /* #212A31 */
+
+    --primary: 18 78 102; /* #124E66 */
+    --primary-foreground: 211 217 212; /* #D3D9D4 */
+
+    --secondary: 116 141 146; /* #748D92 */
+    --secondary-foreground: 33 42 49; /* #212A31 */
+
+    --muted: 116 141 146; /* #748D92 */
+    --muted-foreground: 46 57 68; /* #2E3944 */
+
+    --accent: 116 141 146; /* #748D92 */
+    --accent-foreground: 33 42 49; /* #212A31 */
+
+    --destructive: 239 68 68;
+    --destructive-foreground: 211 217 212; /* #D3D9D4 */
+
+    --border: 116 141 146; /* #748D92 */
+    --input: 116 141 146; /* #748D92 */
+    --ring: 18 78 102; /* #124E66 */
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .scholar-gradient {
+    @apply bg-gradient-scholar text-scholar-100;
+  }
+
+  .scholar-gradient-text {
+    @apply bg-gradient-to-r from-scholar-900 to-scholar-700 bg-clip-text text-transparent;
+  }
+
+  .glass-card {
+    @apply bg-scholar-100/80 backdrop-blur-sm border border-scholar-300/20 shadow-lg;
+  }
+
+  .hover-lift {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-2;
+  }
+}
