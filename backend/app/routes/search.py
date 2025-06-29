@@ -3,6 +3,7 @@ from typing import List, Optional, Dict
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
+from supabase import create_client, Client
 import logging
 from supabase import create_client, Client
 from ..ml.domain_classifier import classify_research_domain
