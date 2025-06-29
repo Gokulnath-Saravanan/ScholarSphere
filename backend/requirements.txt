@@ -4,9 +4,8 @@ requests==2.31.0
 
 
 # Database
-httpx==0.24.1
-gotrue==2.4.1
 supabase==1.2.0
+httpx==0.24.1
 
 # Environment and utilities
 python-dotenv==1.0.0
