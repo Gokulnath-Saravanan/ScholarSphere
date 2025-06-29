@@ -37,5 +37,3 @@ passlib[bcrypt]>=1.7.4
 email-validator>=2.1.0
 undetected-chromedriver>=3.5.5
 
-
---constraint constraints.txt
