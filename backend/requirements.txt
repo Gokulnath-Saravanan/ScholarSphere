@@ -5,7 +5,7 @@ requests==2.31.0
 
 # Database
 httpx==0.24.1
-gotrue==2.4.0
+gotrue==2.4.1
 supabase==1.2.0
 
 # Environment and utilities
