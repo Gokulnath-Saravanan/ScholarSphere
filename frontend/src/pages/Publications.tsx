@@ -42,7 +42,7 @@ const Publications = () => {
       pub.venue?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesType = selectedType === '' || pub.publication_type === selectedType;
-    const matchesYear = selectedYear === '' || pub.year.toString() === selectedYear;
+    const matchesYear = selectedYear === '' || (pub.year ? pub.year.toString() : '') === selectedYear;
 
     return matchesSearch && matchesType && matchesYear;
   });
