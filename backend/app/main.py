@@ -15,7 +15,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:8080",  # local frontend dev port
-        "https://your-frontend.netlify.app"
+        "https://scholarshperes.netlify.app"
     ],  # Or ["*"] for all, but not recommended for production
     allow_credentials=True,
     allow_methods=["*"],
