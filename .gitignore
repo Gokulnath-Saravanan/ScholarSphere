@@ -76,3 +76,5 @@ backend/app/*/__pycache__/
 
 # Supabase
 supabase/.temp/
+
+src/lib
